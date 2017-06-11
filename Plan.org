@@ -1,0 +1,27 @@
+* Structure
+Text-to-command module
+Speech-to-text module
+Command module
+
+** Text-to-command module
+   Identifies overall action and slots, passes to command module
+   ConvNet required to learn this mapping
+   Stage 1:
+
+** Speech-to-text module
+   Convnet required
+
+** Cron Module
+   Run commands according to preset times
+
+
+** Command module
+   Extensible, calls plugins with identified slot values
+*** Commands
+**** Wake up
+     Asks user to wake up
+**** Weather warning
+     Issues weather warnings - rain today etc.
+**** Random message
+**** Good night
+     Sets alarm, enters quiet mode until wake up time
