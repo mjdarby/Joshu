@@ -5,15 +5,17 @@ Command module
 
 ** Text-to-command module
    Identifies overall action and slots, passes to command module
-   ConvNet required to learn this mapping
-   Stage 1:
 
 ** Speech-to-text module
    Convnet required
 
 ** Cron Module
-   Run commands according to preset times
+   Schedules commands according to preset times
 
+** Server module
+   Reads intents and slots, performs commands
+   Action queue
+   Send cron actions to clients (not sure how)
 
 ** Command module
    Extensible, calls plugins with identified slot values
