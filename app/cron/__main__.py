@@ -29,8 +29,36 @@ class Cron():
         print("Sent: {}".format(data))
         print("Received: {}".format(received))
 
+    def writeJobs(self, jobs):
+        with open('crontab', 'w') as f:
+            for job in jobs:
+                f.write(job.executionTime + " " + job.string)
+
+    def addJob(self, intent, time):
+        self.jobs.append(CronJob(time, intent))
+        self.writeJobs(self.jobs)
+
+    def deleteJob(self, intent):
+        jobs = []
+        for job in self.jobs:
+            if job.string != intent:
+                jobs.append(job)
+        self.jobs = jobs
+
+    def getJobs(self):
+        jobs = []
+        with open('crontab', 'r+') as f:
+            for line in f:
+                print(line)
+                parameters = line.split(" ")
+                jobs.append(CronJob(datetime.datetime.fromtimestamp(int(parameters[0])), parameters[1]))
+        return jobs
+                
+
     def run(self):
         timeAtStartOfRun = datetime.datetime.now()
+        # Get list of jobs
+        self.jobs = self.getJobs()
         for job in self.jobs:
             print(job.executionTime)
             print(self.currentTime)
@@ -41,7 +69,6 @@ class Cron():
 
 if __name__ == "__main__":
     cron = Cron()
-    cron.jobs = [CronJob(datetime.datetime.now() + datetime.timedelta(0, 10), "wakeUp")]
     while True:
         time.sleep(1)
         cron.run()

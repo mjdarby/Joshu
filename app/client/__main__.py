@@ -1,5 +1,6 @@
 import socket
 import sys
+from app.speechsynth import voice
 
 HOST, PORT = "localhost", 9999
 data = " ".join(sys.argv[1:])
@@ -15,3 +16,5 @@ finally:
 
 print("Sent: {}".format(data))
 print("Received: {}".format(received))
+voice.speak(received)
+
