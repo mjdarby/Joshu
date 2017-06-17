@@ -13,42 +13,30 @@ class Cron():
         self.jobs = []
         self.currentTime = datetime.datetime.now()
 
-    def sendData(self, string):
-        HOST, PORT = "localhost", 4500
-        data = string
-
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        try:
-            sock.connect((HOST,PORT))
-            sock.sendall(bytes(data, "utf-8"))
-            received = str(sock.recv(1024), "utf-8")
-        finally:
-            sock.close()
-
-        print("Sent: {}".format(data))
-        print("Received: {}".format(received))
-
     def writeJobs(self, jobs):
         with open('crontab', 'w') as f:
             for job in jobs:
-                f.write(job.executionTime + " " + job.string)
+                f.write(str(int(job.executionTime.timestamp())) + " " + job.string + '\n')
 
     def addJob(self, intent, time):
-        self.jobs.append(CronJob(time, intent))
-        self.writeJobs(self.jobs)
+        jobs = self.getJobs()
+        jobs.append(CronJob(time, intent))
+        self.writeJobs(jobs)
 
     def deleteJob(self, intent):
-        jobs = []
+        self.jobs = self.getJobs()
+        newJobs = []
         for job in self.jobs:
             if job.string != intent:
-                jobs.append(job)
-        self.jobs = jobs
+                newJobs.append(job)
+        self.writeJobs(self, newJobs)
+        self.jobs = newJobs
 
     def getJobs(self):
         jobs = []
         with open('crontab', 'r+') as f:
             for line in f:
+                line = line[0:-1] # Strip newline
                 print(line)
                 parameters = line.split(" ")
                 jobs.append(CronJob(datetime.datetime.fromtimestamp(int(parameters[0])), parameters[1]))
@@ -65,6 +53,7 @@ class Cron():
             print(self.currentTime)
             # ie. if this event should happen now...
             if self.currentTime < job.executionTime and job.executionTime < timeAtStartOfRun:
+                print("Running job")
                 jobsToRun.append(job)
         self.currentTime = timeAtStartOfRun
         return jobsToRun

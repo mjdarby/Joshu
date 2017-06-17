@@ -1,5 +1,6 @@
+import datetime
 from .command import BaseCommand
-from app.cron.cron import Cron, CronJob
+from app.cron.cron import Cron
 
 class SetAlarm(BaseCommand):
     def __init__(self, dataStore):
@@ -7,6 +8,12 @@ class SetAlarm(BaseCommand):
         self.dataStore = dataStore
 
     def run(self, connectionInfo, slots):
+        # Reset existing alarm
+        if "wake" in self.dataStore.keys():
+            self.dataStore["wake"]["awake"] = False
+            self.dataStore["wake"]["totalRuns"] = 0
+
+        # Set the wake up event
         cron = Cron()
-        cron.addJob("wakeUp", slots[0])
+        cron.addJob("wakeUp", datetime.datetime.fromtimestamp(int(slots[0])))
         return "Alarm set for " + slots[0] + " and " + connectionInfo.name

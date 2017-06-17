@@ -4,6 +4,7 @@ import time
 import socket
 from .wakeup import WakeUp
 from .setalarm import SetAlarm
+from .awake import Awake
 from .command import BaseCommand
 from app.cron.cron import Cron
 
@@ -40,6 +41,14 @@ class Disconnect(BaseCommand):
         else:
             return "Not connected"
 
+class CommandList():
+    def __init__(self, dataStore):
+        self.commands = {"connect": Connect(dataStore),
+                         "disconnect": Disconnect(dataStore),
+                         "wakeUp": WakeUp(dataStore),
+                         "setAlarm": SetAlarm(dataStore),
+                         "awake": Awake(dataStore)}
+        
 class JoshuData():
     def __init__(self):
         self.dataStore = {}
@@ -53,11 +62,7 @@ class JoshuHandler(socketserver.BaseRequestHandler):
             self._handle()
 
     def _handle(self):
-        self.commands = {"connect": Connect(self.server.joshu.dataStore),
-                         "disconnect": Disconnect(self.server.joshu.dataStore),
-                         "wakeUp": WakeUp(self.server.joshu.dataStore),
-                         "setAlarm": SetAlarm(self.server.joshu.dataStore)}
-
+        self.commands = CommandList(self.server.joshu.dataStore).commands
         self.data = self.request.recv(1024).strip().decode("utf-8")
         print("{} wrote: {}".format(self.client_address[0], self.data))
 
@@ -101,14 +106,19 @@ sharedData = JoshuData()
 
 
 def runServer(cronThread):
-    HOST, PORT = "localhost", 9999
-    server = socketserver.TCPServer((HOST, PORT), JoshuHandler)
-    server.joshu = sharedData
-    server.joshu.dataStore["connectedClients"] = {}
-    server.serve_forever()
-    with lock:
+    global serverRunning
+    try:
+        HOST, PORT = "localhost", 9999
+        server = socketserver.TCPServer((HOST, PORT), JoshuHandler)
+        server.joshu = sharedData
+        server.joshu.dataStore["connectedClients"] = {}
+        server.serve_forever()
+        with lock:
+            serverRunning = False
+        cronThread.join()
+    except KeyboardInterrupt:
         serverRunning = False
-    cronThread.join()
+        raise
 
 def sendToClient(clientIp, data):
     HOST, PORT = clientIp, 4500
@@ -122,9 +132,9 @@ def sendToClient(clientIp, data):
     finally:
         sock.close()
     
-
 def runCron():
     cron = Cron()
+    commandList = CommandList(sharedData.dataStore).commands
     while serverRunning:
         with lock:
             # Tidy dead connections
@@ -133,13 +143,17 @@ def runCron():
             # Run cron
             jobsToRun = cron.run()
             for job in jobsToRun:
+                print(job)
                 if job.targetName is not None:
                     pass
                 else:
-                    for connectionInfo in sharedData.dataStore["connectedClients"].keys():
-                        # TODO: Run the command in Cron and push the result, not the job string
-                        sendToClient(connectionInfo, job.string)
-                
+                    for connectionInfo in sharedData.dataStore["connectedClients"].keys(): 
+                        if (job.string in commandList.keys()):
+                            response = commandList[job.string].run(connectionInfo, [])
+                            if response:
+                                sendToClient(connectionInfo, response)
+                        else:
+                            print("Command not found IN CRONJOB! " + job.string)
             time.sleep(1)
 
 if __name__ == "__main__":

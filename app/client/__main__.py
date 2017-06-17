@@ -37,6 +37,7 @@ if __name__ == "__main__":
         if data == "quit":
             with lock:
                 server.shutdown()
+                clientRunning = False
                 break
 
         with lock:

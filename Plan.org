@@ -31,4 +31,6 @@ Command module
 * TODOs
   1) Connection clean-up on server side - periodic pings to make sure client is alive
   2) Actually define a real cron file format
-  3) Enhance wake up to re-enqueue itself until 'awake' is sent
+
+* Dones
+  18/06/2016: Awake command stops recurring wakeUp alarms, recurring wakeUp alarms work (basically)
