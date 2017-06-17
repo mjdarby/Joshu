@@ -27,3 +27,8 @@ Command module
 **** Random message
 **** Good night
      Sets alarm, enters quiet mode until wake up time
+
+* TODOs
+  1) Connection clean-up on server side - periodic pings to make sure client is alive
+  2) Actually define a real cron file format
+  3) Enhance wake up to re-enqueue itself until 'awake' is sent
