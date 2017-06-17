@@ -11,8 +11,10 @@ Joshu is written in Python 3
 
 # Commands
 ## setAlarm
-Creates a cronjob (implemented) to tell server to run wakeUp (implemented) and send to attached clients (not implemented)
+Creates a cronjob (implemented) to tell server to run wakeUp (implemented) and send to attached clients
 ### Parameters
 * Alarm time as unix timestamp
 ## wakeUp
-Tells server to send 'wakey-wakey' (implemented) to attached clients (not implemented)
+Tells server to send 'wakey-wakey' (implemented) to all attached clients
+Enhancement: Only target clients for which we set an alarm for
+Enhancement: Re-enqueue self until 'awake' signal received
