@@ -5,6 +5,6 @@ class WakeUp(BaseCommand):
         super(WakeUp, self).__init__("wake")
         self.dataStore = dataStore
 
-    def run(self, slots):
+    def run(self, connectionInfo, slots):
         self.dataStore[self.name] = "off"
         return "Wakey-wakey!"

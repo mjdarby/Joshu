@@ -1,7 +1,44 @@
 import socketserver
+import threading
+import time
+import socket
 from .wakeup import WakeUp
 from .setalarm import SetAlarm
+from .command import BaseCommand
+from app.cron.cron import Cron
 
+class ConnectionInfo():
+    def __init__(self, ip, name):
+        self.ip = ip
+        self.name = name
+
+    def __repr__(self):
+        return self.ip + ": " + self.name
+
+class Connect(BaseCommand):
+    def __init__(self, dataStore):
+        super(Connect, self).__init__("connect")
+        self.dataStore = dataStore
+
+    def run(self, connectionInfo, slots):
+        if connectionInfo.ip in self.dataStore["connectedClients"].keys():
+            return "Already connected"
+        else:
+            connectionInfo.name = slots[0]
+            self.dataStore["connectedClients"][connectionInfo.ip] = connectionInfo
+            return "Connected as " + connectionInfo.name
+
+class Disconnect(BaseCommand):
+    def __init__(self, dataStore):
+        super(Disconnect, self).__init__("disconnect")
+        self.dataStore = dataStore
+
+    def run(self, connectionInfo, slots):
+        if connectionInfo.ip in self.dataStore["connectedClients"].keys():
+            del self.dataStore["connectedClients"][connectionInfo.ip]
+            return "Disconnected"
+        else:
+            return "Not connected"
 
 class JoshuData():
     def __init__(self):
@@ -12,7 +49,13 @@ class JoshuHandler(socketserver.BaseRequestHandler):
         super(JoshuHandler,self).__init__(request,client_address,server)
 
     def handle(self):
-        self.commands = {"wakeUp": WakeUp(self.server.joshu.dataStore),
+        with lock:
+            self._handle()
+
+    def _handle(self):
+        self.commands = {"connect": Connect(self.server.joshu.dataStore),
+                         "disconnect": Disconnect(self.server.joshu.dataStore),
+                         "wakeUp": WakeUp(self.server.joshu.dataStore),
                          "setAlarm": SetAlarm(self.server.joshu.dataStore)}
 
         self.data = self.request.recv(1024).strip().decode("utf-8")
@@ -24,15 +67,82 @@ class JoshuHandler(socketserver.BaseRequestHandler):
 
         print(intent)
         print(slots)
+        print(self.server.joshu.dataStore["connectedClients"])
         
+        # 'Auth'
+        connectionInfo = None
+        if self.client_address[0] in self.server.joshu.dataStore["connectedClients"].keys():
+            connectionInfo = self.server.joshu.dataStore["connectedClients"][self.client_address[0]]
+            print("Message from: {} at IP {}".format(connectionInfo.name, connectionInfo.ip))
+        elif intent == "connect":
+            connectionInfo = ConnectionInfo(self.client_address[0], "")
+        else:
+            self.request.sendall(bytes("Not authorised", "utf-8"))
+            return
+
+        # Run command
         if (intent in self.commands.keys()):
-            response = self.commands[intent].run(slots)
+            response = self.commands[intent].run(connectionInfo, slots)
             self.request.sendall(bytes(response, "utf-8"))
         else:
             self.request.sendall(bytes("Command not found", "utf-8"))
 
-if __name__ == "__main__":
+class Server():
+    def run():
+        HOST, PORT = "localhost", 9999
+        server = socketserver.TCPServer((HOST, PORT), JoshuHandler)
+        server.joshu = JoshuData()
+        server.joshu.dataStore["connectedClients"] = {}
+        server.serve_forever()
+
+lock = threading.RLock()
+serverRunning = True
+sharedData = JoshuData()
+
+
+def runServer(cronThread):
     HOST, PORT = "localhost", 9999
     server = socketserver.TCPServer((HOST, PORT), JoshuHandler)
-    server.joshu = JoshuData()
+    server.joshu = sharedData
+    server.joshu.dataStore["connectedClients"] = {}
     server.serve_forever()
+    with lock:
+        serverRunning = False
+    cronThread.join()
+
+def sendToClient(clientIp, data):
+    HOST, PORT = clientIp, 4500
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    try:
+        sock.connect((HOST,PORT))
+        sock.sendall(bytes(data, "utf-8"))
+        received = str(sock.recv(1024), "utf-8") # TODO Timeout 
+    finally:
+        sock.close()
+    
+
+def runCron():
+    cron = Cron()
+    while serverRunning:
+        with lock:
+            # Tidy dead connections
+            HOST, PORT = "localhost", 4500
+
+            # Run cron
+            jobsToRun = cron.run()
+            for job in jobsToRun:
+                if job.targetName is not None:
+                    pass
+                else:
+                    for connectionInfo in sharedData.dataStore["connectedClients"].keys():
+                        # TODO: Run the command in Cron and push the result, not the job string
+                        sendToClient(connectionInfo, job.string)
+                
+            time.sleep(1)
+
+if __name__ == "__main__":
+    cronThread = threading.Thread(None, runCron)
+    cronThread.start()
+    runServer(cronThread)
