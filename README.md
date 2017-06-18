@@ -15,6 +15,17 @@ Creates a cronjob (implemented) to tell server to run wakeUp (implemented) and s
 ### Parameters
 * Alarm time as unix timestamp
 ## wakeUp
-Tells server to send 'wakey-wakey' (implemented) to all attached clients
+Debug client only, should only be used as part of Cron job
+Tells server to send 'wakey-wakey' (implemented) to all attached clients. Re-enqueues self if 'awake' command not issued.
 Enhancement: Only target clients for which we set an alarm for
-Enhancement: Re-enqueue self until 'awake' signal received
+## awake
+Tells Joshu to stop the alarm if it's running, otherwise responds with an acknowledgement
+## weather
+If given a location name, retrieves and reports the weather there.
+Otherwise tries to report the weather data for the client's location.
+
+# Requirements
+* Python 3.4.3 or greater
+* pip modules:
+** weather-api
+** pypiwin32 (hopefully not going to be a requirement forever)

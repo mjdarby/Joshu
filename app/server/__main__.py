@@ -5,6 +5,7 @@ import socket
 from .wakeup import WakeUp
 from .setalarm import SetAlarm
 from .awake import Awake
+from .weather import Weather
 from .command import BaseCommand
 from app.cron.cron import Cron
 
@@ -45,6 +46,7 @@ class CommandList():
     def __init__(self, dataStore):
         self.commands = {"connect": Connect(dataStore),
                          "disconnect": Disconnect(dataStore),
+                         "weather": Weather(dataStore),
                          "wakeUp": WakeUp(dataStore),
                          "setAlarm": SetAlarm(dataStore),
                          "awake": Awake(dataStore)}
