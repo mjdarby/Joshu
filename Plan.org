@@ -19,18 +19,86 @@ Command module
 
 ** Command module
    Extensible, calls plugins with identified slot values
-*** Commands
-**** Wake up
-     Asks user to wake up
-**** Weather warning
+*** User-entered Commands
+    User-entered commands are manual commands issued by the user, through console, UI, or voice input.
+
+**** Request weather status
+***** Console command
+      weather [location]
+***** TODO Voice command
+      What's the weather like, etc
+***** Functionality     
      Issues weather warnings - rain today etc.
+**** Good morning
+***** Console command
+      awake
+***** TODO Voice command
+      Good morning, etc.
+***** Functionality
+     Disables alarm
+**** TODO Good night
+***** Console command
+      night
+***** Voice command
+      Good night, etc.
+***** Functionality
+     Enables alarm, enters quiet mode until wake up time
+**** Set alarm
+***** Console
+      setAlarm <time>
+***** Functionality
+      Sets the wake up alarm. Enhancement: General alarms?
+**** TODO Wake me up at...
+***** Console
+      wakeUpAt <time>
+***** Functionality
+     Combines 'set alarm' and 'good night'
+**** TODO I'm leaving
+***** Console
+      leaving
+***** Functionality
+      Issues a 'goodbye' message and puts the server into 'user is away' mode
+      Enhancement: Automatically GPS fence with app to know when user is not home
+**** TODO I'm back
+***** Console
+      home
+***** Functionality
+      Issues a 'welcome home' message and takes the server out of 'user is away' mode
+      Enhancement: Automatically GPS fence with app to know when user is not home
+**** TODO Light control
+***** Console
+      lights [on/off] [room name]
+***** Functionality
+      Turns the lights on or off for a given room.
+     
+*** Auto Commands
+    Auto-commands are run by the server and sent to connected clients, depending on how the command was enqueued. Typically sent to 'home' units if user is at home, or to their application
+
+**** Wake up
+***** Set by
+      'wake me up' or 'set alarm' commands
+***** Functionality      
+     Asks user to wake up wheh alarm time is reached.
+     TODO Give weather warning
+     TODO Reset alarm for correct time next day
+**** TODO Remind user to go to work
+***** Set by
+      Manual configuration via application/user interface
+      Command
+***** Functionality
+      If server is not in 'user is away' mode, issues a reminder that the user has to leave for work
+     
 **** Random message
-**** Good night
-     Sets alarm, enters quiet mode until wake up time
+***** Set by
+      Auto-enqueued by server randomly
+***** Functionality
+      
 
 * TODOs
   1) Connection clean-up on server side - periodic pings to make sure client is alive
   2) Actually define a real cron file format
+  3) Check if we really need that lock on the client side
 
 * Dones
   18/06/2016: Awake command stops recurring wakeUp alarms, recurring wakeUp alarms work (basically)
+
