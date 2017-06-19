@@ -25,7 +25,7 @@ If given a location name, retrieves and reports the weather there.
 Otherwise tries to report the weather data for the client's location.
 
 # Requirements
-* Python 3.4.3 or greater
+* Python 3.6.1 or greater
 * pip modules:
-** weather-api
-** pypiwin32 (hopefully not going to be a requirement forever)
+    * pypiwin32 (hopefully not going to be a requirement forever)
+    * pygame (if using the GUI)
