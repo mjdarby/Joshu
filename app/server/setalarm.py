@@ -1,5 +1,6 @@
 import datetime
 from .command import BaseCommand
+from app.shared.response import Response
 from app.cron.cron import Cron
 
 class SetAlarm(BaseCommand):
@@ -16,4 +17,6 @@ class SetAlarm(BaseCommand):
         # Set the wake up event
         cron = Cron()
         cron.addJob("wakeUp", datetime.datetime.fromtimestamp(int(slots[0])))
-        return "Alarm set for " + slots[0] + " and " + connectionInfo.name
+        responseText = "Alarm set for " + slots[0] + " and " + connectionInfo.name
+        response = Response(responseText, "neutral")
+        return response

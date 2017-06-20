@@ -7,6 +7,7 @@ from .setalarm import SetAlarm
 from .awake import Awake
 from .weather import Weather
 from .command import BaseCommand
+from app.shared.response import Response
 from app.cron.cron import Cron
 
 class ConnectionInfo():
@@ -23,12 +24,15 @@ class Connect(BaseCommand):
         self.dataStore = dataStore
 
     def run(self, connectionInfo, slots):
+        responseText = ""
         if connectionInfo.ip in self.dataStore["connectedClients"].keys():
-            return "Already connected"
+            responseText = "Already connected"
         else:
             connectionInfo.name = slots[0]
             self.dataStore["connectedClients"][connectionInfo.ip] = connectionInfo
-            return "Connected as " + connectionInfo.name
+            responseText = "Connected as " + connectionInfo.name
+        response = Response(responseText, "happy")
+        return response
 
 class Disconnect(BaseCommand):
     def __init__(self, dataStore):
@@ -36,11 +40,14 @@ class Disconnect(BaseCommand):
         self.dataStore = dataStore
 
     def run(self, connectionInfo, slots):
+        responseText = ""
         if connectionInfo.ip in self.dataStore["connectedClients"].keys():
             del self.dataStore["connectedClients"][connectionInfo.ip]
-            return "Disconnected"
+            responseText = "Disconnected"
         else:
-            return "Not connected"
+            responseText = "Not connected"
+        response = Response(responseText, "neutral")
+        return response
 
 class CommandList():
     def __init__(self, dataStore):
@@ -84,15 +91,17 @@ class JoshuHandler(socketserver.BaseRequestHandler):
         elif intent == "connect":
             connectionInfo = ConnectionInfo(self.client_address[0], "")
         else:
-            self.request.sendall(bytes("Not authorised", "utf-8"))
+            response = Response("Not authorised", "neutral")
+            self.request.sendall(bytes(response.getJson(), "utf-8"))
             return
 
         # Run command
         if (intent in self.commands.keys()):
             response = self.commands[intent].run(connectionInfo, slots)
-            self.request.sendall(bytes(response, "utf-8"))
+            self.request.sendall(bytes(response.getJson(), "utf-8"))
         else:
-            self.request.sendall(bytes("Command not found", "utf-8"))
+            response = Response("Command not found", "neutral")
+            self.request.sendall(bytes(response.getJson(), "utf-8"))
 
 class Server():
     def run():
@@ -122,14 +131,14 @@ def runServer(cronThread):
         serverRunning = False
         raise
 
-def sendToClient(clientIp, data):
+def sendToClient(clientIp, response):
     HOST, PORT = clientIp, 4500
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     try:
         sock.connect((HOST,PORT))
-        sock.sendall(bytes(data, "utf-8"))
+        sock.sendall(bytes(response.getJson(), "utf-8"))
         received = str(sock.recv(1024), "utf-8") # TODO Timeout 
     finally:
         sock.close()

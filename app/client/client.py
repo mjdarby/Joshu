@@ -1,7 +1,6 @@
 import socketserver
 import socket
 import threading
-from app.speechsynth import voice
 
 class ClientHandler(socketserver.BaseRequestHandler):
     def handle(self):
@@ -11,12 +10,13 @@ class ClientHandler(socketserver.BaseRequestHandler):
     def _handle(self):
         data = self.request.recv(1024).strip().decode("utf-8")
         self.request.sendall(bytes("ACK", "utf-8"))
-        voice.speak(data)
+        self.server.callback(data)
 
-def runClientThread(clientLock):
+def runClientThread(clientLock, callback):
     HOST, PORT = "localhost", 4500
     server = socketserver.TCPServer((HOST, PORT), ClientHandler)
     server.lock = clientLock
+    server.callback = callback
     clientThread = threading.Thread(None, server.serve_forever)
     clientThread.start()
     return clientThread, server
@@ -35,5 +35,4 @@ def sendCommand(data, clientLock):
 
         print("Sent: {}".format(data))
         print("Received: {}".format(received))
-        voice.speak(received)    
-
+        return received

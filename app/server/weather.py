@@ -6,6 +6,7 @@ import json
 import random
 from enum import Enum
 from .command import BaseCommand
+from app.shared.response import Response
 from app.cron.cron import Cron
 
 class WeatherCondition(Enum):
@@ -185,6 +186,7 @@ class Weather(BaseCommand):
             location = getClientLocation(connectionInfo.ip)
 
         yahooJson = getWeatherForLocation(location)
-        response = processJsonToResponse(yahooJson)
+        responseText = processJsonToResponse(yahooJson)
+        response = Response(responseText, "happy")
 
         return response

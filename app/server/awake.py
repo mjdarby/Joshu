@@ -1,6 +1,8 @@
 import datetime
 import time
+import random
 from .command import BaseCommand
+from app.shared.response import Response
 from app.cron.cron import Cron
 
 class Awake(BaseCommand):
@@ -12,6 +14,5 @@ class Awake(BaseCommand):
         # First run check
         if "wake" in self.dataStore.keys():
             self.dataStore["wake"]["awake"] = True
-            return "Good morning!"
-
-        return "I know!"
+            return Response(random.choice(["Good morning!"]), "happy")
+        return Response(random.choice(["I know."]), "neutral")

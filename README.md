@@ -29,3 +29,12 @@ Otherwise tries to report the weather data for the client's location.
 * pip modules:
     * pypiwin32 (hopefully not going to be a requirement forever)
     * pygame (if using the GUI)
+* A set of ordered animation frames in app/gui/assets (for using the 'gui')
+    * Frame 0 should have no mouth movement
+    * Hardcoded at 3 fps
+    * Base filenames must be after the moods returned by server, like:
+        * annoyed1.png, annoyed2.png, annoyed3.png
+    * Current moods are:
+        * "annoyed"
+	* "neutral"
+	* "happy"

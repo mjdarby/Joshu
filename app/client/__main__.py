@@ -1,5 +1,6 @@
 from threading import RLock
 from .client import runClientThread, sendCommand
+from app.speechsynth import voice
 
 if __name__ == "__main__":
     # Setup
@@ -14,8 +15,8 @@ if __name__ == "__main__":
                 server.shutdown()
                 break
 
-        sendCommand(data, lock)
+        received = sendCommand(data, lock)
+        voice.speak(received)
 
     # Cleanup
     clientThread.join()
-

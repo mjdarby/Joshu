@@ -10,3 +10,4 @@ def speak(text):
     speak.Rate = rate
     speak.Volume = volume
     speak.Speak(text)
+    print(text)

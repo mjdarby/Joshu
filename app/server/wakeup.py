@@ -2,6 +2,7 @@ import datetime
 import time
 import random
 from .command import BaseCommand
+from app.shared.response import Response
 from app.cron.cron import Cron
 
 class WakeUp(BaseCommand):
@@ -9,11 +10,13 @@ class WakeUp(BaseCommand):
         super(WakeUp, self).__init__("wake")
         self.dataStore = dataStore
 
-    def getWakeUpString(self):
+    def getWakeUpResponse(self):
+        responseText = ""
+        responseMood = ""
         if (self.getData("totalRuns") == 0):
-            return random.choice(["Time to wake up!", "Rise and shine!"])
+            return Response(random.choice(["Time to wake up!", "Rise and shine!"]), "happy")
         else:
-            return random.choice(["Hey, get up already!", "Don't make me repeat myself!"])
+            return Response(random.choice(["Hey, get up already!", "Don't make me repeat myself!"]), "annoyed")
 
     def run(self, connectionInfo, slots):
         # First run check
@@ -23,8 +26,8 @@ class WakeUp(BaseCommand):
         if not self.dataStore[self.name]["awake"]:
             cron = Cron()
             cron.addJob("wakeUp", datetime.datetime.fromtimestamp(int(time.time())+10))
-            wakeUpString = self.getWakeUpString()
+            wakeUpResponse = self.getWakeUpResponse()
             self.dataStore[self.name]["totalRuns"] += 1
-            return wakeUpString
+            return wakeUpResponse
         else:
             return ""
