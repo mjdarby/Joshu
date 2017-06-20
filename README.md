@@ -36,5 +36,5 @@ Otherwise tries to report the weather data for the client's location.
         * annoyed1.png, annoyed2.png, annoyed3.png
     * Current moods are:
         * "annoyed"
-	* "neutral"
-	* "happy"
+        * "neutral"
+        * "happy"
