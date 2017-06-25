@@ -5,6 +5,7 @@ import socket
 from .wakeup import WakeUp
 from .setalarm import SetAlarm
 from .awake import Awake
+from .chat import Chat
 from .weather import Weather
 from .command import BaseCommand
 from app.shared.response import Response
@@ -56,7 +57,8 @@ class CommandList():
                          "weather": Weather(dataStore),
                          "wakeUp": WakeUp(dataStore),
                          "setAlarm": SetAlarm(dataStore),
-                         "awake": Awake(dataStore)}
+                         "awake": Awake(dataStore),
+                         "chat": Chat(dataStore)}
         
 class JoshuData():
     def __init__(self):

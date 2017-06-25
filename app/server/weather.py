@@ -107,6 +107,7 @@ def getWeatherForLocation(location):
 
 def processJsonToResponse(yahooJson):
     response = ""
+    mood = "happy"
     # From the Yahoo API docs
     currentCondition = codeToCondition(int(yahooJson["query"]["results"]["channel"]["item"]["condition"]["code"]))
     if currentCondition == WeatherCondition.FAIRDAY:
@@ -170,7 +171,7 @@ def processJsonToResponse(yahooJson):
             response += random.choice(["It's going to be stormy later, so stay safe."])
         elif forecastCondition == WeatherCondition.STAYINDOORS:
             response += random.choice(["It's gonna get scary out later, so stay safe, okay?"])
-    return response
+    return response, mood
 
 class Weather(BaseCommand):
     def __init__(self, dataStore):
@@ -186,7 +187,7 @@ class Weather(BaseCommand):
             location = getClientLocation(connectionInfo.ip)
 
         yahooJson = getWeatherForLocation(location)
-        responseText = processJsonToResponse(yahooJson)
-        response = Response(responseText, "happy")
+        responseText, mood = processJsonToResponse(yahooJson)
+        response = Response(responseText, mood)
 
         return response
