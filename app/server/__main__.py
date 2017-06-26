@@ -157,16 +157,18 @@ def runCron():
             jobsToRun = cron.run()
             for job in jobsToRun:
                 print(job)
-                if job.targetName is not None:
-                    pass
+                # Run job
+                if job.string in commandList.keys():
+                    response = commandList[job.string].run(None, job.slots) # Cron jobs should be connection agnostic
+                    if response:
+                        # Send output to either all clients, or target client
+                        for clientIp in sharedData.dataStore["connectedClients"].keys():
+                            connectionDetails = sharedData.dataStore["connectedClients"][clientIp]
+                            if job.targetName == None or connectionDetails.name == job.targetName:
+                                sendToClient(clientIp, response)
                 else:
-                    for connectionInfo in sharedData.dataStore["connectedClients"].keys(): 
-                        if (job.string in commandList.keys()):
-                            response = commandList[job.string].run(connectionInfo, [])
-                            if response:
-                                sendToClient(connectionInfo, response)
-                        else:
-                            print("Command not found IN CRONJOB! " + job.string)
+                    print("Command not found IN CRONJOB! " + job.string)
+
             time.sleep(1)
 
 if __name__ == "__main__":

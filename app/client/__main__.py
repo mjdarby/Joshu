@@ -1,11 +1,16 @@
 from threading import RLock
 from .client import runClientThread, sendCommand
+from app.shared.response import Response
 from app.speechsynth import voice
 
 if __name__ == "__main__":
+    def callback(data):
+        response = Response.decodeJson(data)
+        voice.speak(response.text)
+
     # Setup
     lock = RLock()
-    clientThread, server = runClientThread(lock)
+    clientThread, server = runClientThread(lock, callback)
 
     # Main loop
     while True:
@@ -16,7 +21,8 @@ if __name__ == "__main__":
                 break
 
         received = sendCommand(data, lock)
-        voice.speak(received)
+        response = Response.decodeJson(received)
+        voice.speak(response.text)
 
     # Cleanup
     clientThread.join()
