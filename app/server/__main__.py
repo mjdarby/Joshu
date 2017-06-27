@@ -58,11 +58,16 @@ class CommandList():
                          "wakeUp": WakeUp(dataStore),
                          "setAlarm": SetAlarm(dataStore),
                          "awake": Awake(dataStore),
-                         "chat": Chat(dataStore)}
+                         "chat": Chat(dataStore),
+                         "home": Home(dataStore),
+                         "leave": Leave(dataStore)}
         
 class JoshuData():
     def __init__(self):
         self.dataStore = {}
+
+    def initialise(self):
+        self.dataStore["isUserHome"] = True
 
 class JoshuHandler(socketserver.BaseRequestHandler):
     def __init__(self, request, client_address, server):
