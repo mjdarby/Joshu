@@ -11,7 +11,7 @@ class Leave(BaseCommand):
 
     def run(self, connectionInfo, slots):
         if self.dataStore["isUserHome"]:
-            return Response(random.choice(["But you're already out?"]), "neutral")
-        else:
             self.dataStore["isUserHome"] = False
             return Response(random.choice(["See you soon!", "Have a pleasant day!", "Catch you later."]), "happy")
+        else:
+            return Response(random.choice(["But you're already out?"]), "neutral")

@@ -1,3 +1,4 @@
+import datetime
 import socketserver
 import threading
 import time
@@ -7,6 +8,9 @@ from .setalarm import SetAlarm
 from .awake import Awake
 from .chat import Chat
 from .weather import Weather
+from .home import Home
+from .leave import Leave
+from .encouragement import Encouragement
 from .command import BaseCommand
 from app.shared.response import Response
 from app.cron.cron import Cron
@@ -60,7 +64,8 @@ class CommandList():
                          "awake": Awake(dataStore),
                          "chat": Chat(dataStore),
                          "home": Home(dataStore),
-                         "leave": Leave(dataStore)}
+                         "leave": Leave(dataStore),
+                         "encouragement": Encouragement(dataStore)}
         
 class JoshuData():
     def __init__(self):
@@ -68,6 +73,8 @@ class JoshuData():
 
     def initialise(self):
         self.dataStore["isUserHome"] = True
+        self.dataStore["isUserAtWork"] = False
+        self.dataStore["connectedClients"] = {}
 
 class JoshuHandler(socketserver.BaseRequestHandler):
     def __init__(self, request, client_address, server):
@@ -110,18 +117,10 @@ class JoshuHandler(socketserver.BaseRequestHandler):
             response = Response("Command not found", "neutral")
             self.request.sendall(bytes(response.getJson(), "utf-8"))
 
-class Server():
-    def run():
-        HOST, PORT = "localhost", 9999
-        server = socketserver.TCPServer((HOST, PORT), JoshuHandler)
-        server.joshu = JoshuData()
-        server.joshu.dataStore["connectedClients"] = {}
-        server.serve_forever()
-
 lock = threading.RLock()
 serverRunning = True
 sharedData = JoshuData()
-
+sharedData.initialise()
 
 def runServer(cronThread):
     global serverRunning
@@ -129,7 +128,6 @@ def runServer(cronThread):
         HOST, PORT = "localhost", 9999
         server = socketserver.TCPServer((HOST, PORT), JoshuHandler)
         server.joshu = sharedData
-        server.joshu.dataStore["connectedClients"] = {}
         server.serve_forever()
         with lock:
             serverRunning = False
@@ -153,6 +151,16 @@ def sendToClient(clientIp, response):
 def runCron():
     cron = Cron()
     commandList = CommandList(sharedData.dataStore).commands
+
+    # Clear cron file
+    cron.writeJobs([])
+
+    # Add initial cron items
+    cron.addJob("encouragement", datetime.datetime.fromtimestamp(int(time.time())+60))
+
+    # TODO Add user-configured cron actions
+
+    # Run cron loop
     while serverRunning:
         with lock:
             # Tidy dead connections

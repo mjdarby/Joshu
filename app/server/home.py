@@ -11,7 +11,7 @@ class Home(BaseCommand):
 
     def run(self, connectionInfo, slots):
         if self.dataStore["isUserHome"]:
-            return Response(random.choice(["But you're already out?"]), "neutral")
+            return Response(random.choice(["But you're already home?"]), "neutral")
         else:
             self.dataStore["isUserHome"] = True
-            return Response(random.choice(["See you soon!", "Have a pleasant day!", "Catch you later."]), "happy")
+            return Response(random.choice(["Welcome home!", "How was it out?", "Welcome back."]), "happy")
