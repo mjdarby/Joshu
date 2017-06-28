@@ -3,6 +3,8 @@ import sys
 import datetime
 import json
 
+CRON_FILE = "crontab"
+
 class CronJob():
     def __init__(self, time, string, targetName, slots):
         self.executionTime = time
@@ -31,7 +33,7 @@ class Cron():
         self.currentTime = datetime.datetime.now()
 
     def writeJobs(self, jobs):
-        with open('crontab', 'w') as f:
+        with open(CRON_FILE, 'w') as f:
             for job in jobs:
                 f.write(job.returnAsJson() + '\n')
 
@@ -51,7 +53,7 @@ class Cron():
 
     def getJobs(self):
         jobs = []
-        with open('crontab', 'r+') as f:
+        with open(CRON_FILE, 'r+') as f:
             for line in f:
                 line = line[0:-1] # Strip newline
                 print(line)

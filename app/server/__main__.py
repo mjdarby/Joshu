@@ -156,7 +156,7 @@ def runCron():
     cron.writeJobs([])
 
     # Add initial cron items
-    cron.addJob("encouragement", datetime.datetime.fromtimestamp(int(time.time())+60))
+    cron.addJob("encouragement", datetime.datetime.fromtimestamp(int(time.time())+5))
 
     # TODO Add user-configured cron actions
 
