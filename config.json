@@ -2,7 +2,7 @@
     "work":
     {
 	"workdays": [0, 1, 2, 3, 4],
-	"workStart": "10:00",
+	"workStart": "11:00",
 	"workEnd": "18:30"
     }
 }

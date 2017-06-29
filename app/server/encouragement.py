@@ -19,15 +19,25 @@ class Encouragement(BaseCommand):
         # Determine if the user should be at work
         config = Config()
         workdays = config.config["work"]["workdays"]
-        worktimes = (config.config["work"]["workStart"], config.config["work"]["workEnd"])
-        worktimes = (time.strftime("%H:%M", worktimes[0]), time.strftime("%H:%M", worktimes[1]))
-        currentTime = datetime.datetime.today().time()
-        userAtWork = datetime.datetime.today().weekday() in workdays and (worktimes[0] < currentTime and currentTime < worktimes[1])
+        workTimes = (config.config["work"]["workStart"], config.config["work"]["workEnd"])
+        workTimes = (time.strptime(workTimes[0], "%H:%M"), time.strptime(workTimes[1], "%H:%M"))
+        workTimes = (datetime.datetime.today().replace(hour=workTimes[0].tm_hour, minute=workTimes[0].tm_min), datetime.datetime.today().replace(hour=workTimes[1].tm_hour, minute=workTimes[1].tm_min))
+        halfwayThroughDay = workTimes[0] + datetime.timedelta(seconds=(workTimes[1] - workTimes[0]).total_seconds()/2)
+        currentTime = datetime.datetime.now()
 
-        # If they're not in and they're meant to be at work, send encouragement
-        if not self.dataStore["isUserHome"] and userAtWork:
+        # If they're not in and they're meant to be at work, send encouragement halfway through the day
+        userAtWork = datetime.datetime.today().weekday() in workdays and (workTimes[0] < currentTime and currentTime < workTimes[1])
+        shouldSendEncouragement = not self.dataStore["isUserHome"] and userAtWork
+
+        # Have we already done this today?
+        shouldSendEncouragement = shouldSendEncouragement and self.dataStore["encouragement"]["lastCalled"] != datetime.datetime.today().date()
+
+        # Is it the right time of day?
+        shouldSendEncouragement = shouldSendEncouragement and (currentTime > halfwayThroughDay)
+
+        if shouldSendEncouragement:
             # Update last called time
-            self.dataStore["encouragement"]["lastCalled"] = datetime.datetime.now()
+            self.dataStore["encouragement"]["lastCalled"] = datetime.datetime.today().date()
 
             # TODO Send encouragement via FCM to messenger
             # For now, return response
