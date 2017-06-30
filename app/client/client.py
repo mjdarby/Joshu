@@ -21,8 +21,8 @@ def runClientThread(clientLock, callback):
     clientThread.start()
     return clientThread, server
 
-def sendCommand(data, clientLock):
-    HOST, PORT = "localhost", 9999
+def sendCommand(host, data, clientLock):
+    HOST, PORT = host, 9999
     with clientLock:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

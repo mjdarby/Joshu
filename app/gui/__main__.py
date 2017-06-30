@@ -2,6 +2,7 @@ import pygame
 import sys
 import os
 import glob
+import app.speechrecog.speech
 from threading import RLock, Thread
 from app.shared.response import Response
 from app.client.client import runClientThread, sendCommand
@@ -103,13 +104,13 @@ def _voiceResponse(text, mood, character):
     voice.speak(text)
     character.resetAnimation()
 
-def processCommand(server, clientThread, string, character):
+def processCommand(server, clientThread, host, string, character):
     if (string == "quit"):
         server.shutdown()
         clientThread.join()
         sys.exit()
     else:
-        received = sendCommand(string, lock)
+        received = sendCommand(host, string, lock)
         response = Response.decodeJson(received)
         voiceResponse(response.text, response.mood, character)
 
@@ -125,9 +126,11 @@ def renderText(inputString, surface):
     screen.blit(textSurface, (0, height - pygameFont.size(inputString)[1]))
 
 if __name__ == "__main__":
+    host = sys.argv[1]
+
     # Pygame setup
     pygame.init()
-    pygame.display.set_caption("Joshu v0.1a: Gamma Days")
+    pygame.display.set_caption("Joshu v0.1b: Stronger Days")
 
     screen = pygame.display.set_mode(size)
 
@@ -145,7 +148,6 @@ if __name__ == "__main__":
     # Setup
     lock = RLock()
     clientThread, server = runClientThread(lock, callback)
-
 
     inputString = ""
     # Main loop
@@ -171,7 +173,7 @@ if __name__ == "__main__":
                     clientThread.join()
                     sys.exit()
                 if keyValue == pygame.K_RETURN:
-                    processCommand(server, clientThread, inputString, character)
+                    processCommand(server, clientThread, host, inputString, character)
                     inputString = ""
                 if keyValue >= pygame.K_a and keyValue <= pygame.K_z:
                     if shifted:
@@ -183,6 +185,12 @@ if __name__ == "__main__":
                     inputString += chr(keyValue)
                 if keyValue == pygame.K_BACKSPACE:
                     inputString = inputString[0:-1]
+                if keyValue == pygame.K_TAB:
+                    success, recogString = app.speechrecog.speech.getAudio()
+                    if success:
+                        processCommand(server, clientThread, host, recogString, character)
+                    else:
+                        voiceResponse(recogString, "neutral", character)
 
         # Display
         renderBackground(screen)
