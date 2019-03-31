@@ -25,14 +25,31 @@ def sendCommand(host, data, clientLock):
     HOST, PORT = host, 9999
     with clientLock:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
         try:
             sock.connect((HOST,PORT))
-            sock.sendall(bytes(data, "utf-8"))
+            sock.sendall((0).to_bytes(1, "big") + bytes(data, "utf-8"))
+            print((0).to_bytes(1, "big") + bytes(data, "utf-8"))
             received = str(sock.recv(1024), "utf-8")
         finally:
             sock.close()
 
         print("Sent: {}".format(data))
+        print("Received: {}".format(received))
+        return received
+
+def sendVoiceCommand(host, clientLock):
+    HOST, PORT = host, 9999
+    with clientLock:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        f = open("input.wav", 'rb')
+        data = f.read()
+        try:
+            sock.connect((HOST,PORT))
+            sock.sendall((1).to_bytes(1, "big") + data)
+            received = str(sock.recv(1024), "utf-8")
+        finally:
+            sock.close()
+
+        print("Sent voice data")
         print("Received: {}".format(received))
         return received

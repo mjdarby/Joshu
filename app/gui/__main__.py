@@ -6,7 +6,7 @@ import app.speechrecog.speech
 import pyaudio
 from threading import RLock, Thread
 from app.shared.response import Response
-from app.client.client import runClientThread, sendCommand
+from app.client.client import runClientThread, sendCommand, sendVoiceCommand
 from app.hotword.hotword import runHotwordThread
 from app.speechsynth import voice
 from json import JSONDecodeError
@@ -119,6 +119,10 @@ def processCommand(server, clientThread, host, string, character):
         received = sendCommand(host, string, lock)
         processResponse(received)
 
+def processVoiceCommand(server, clientThread, host):
+    received = sendVoiceCommand(host, lock)
+    processResponse(received)
+
 def processResponse(json):
     try:
         response = Response.decodeJson(json)
@@ -174,11 +178,8 @@ if __name__ == "__main__":
 
     def hotwordCallback():
         voiceResponse("Yes?", "neutral", character)
-        success, recogString = app.speechrecog.speech.getAudio(porcupine, pa, audio_stream)
-        if success:
-            processCommand(server, clientThread, host, recogString, character)
-        else:
-            voiceResponse(recogString, "neutral", character)
+        app.speechrecog.speech.getAudio(porcupine, pa, audio_stream)
+        processVoiceCommand(server, clientThread, host)
 
     # Setup
     lock = RLock()

@@ -66,7 +66,7 @@ class CommandList():
                          "home": Home(dataStore),
                          "leave": Leave(dataStore),
                          "encouragement": Encouragement(dataStore)}
-        
+
 class JoshuData():
     def __init__(self):
         self.dataStore = {}
@@ -86,8 +86,15 @@ class JoshuHandler(socketserver.BaseRequestHandler):
 
     def _handle(self):
         self.commands = CommandList(self.server.joshu.dataStore).commands
-        self.data = self.request.recv(1024).strip().decode("utf-8")
-        print("{} wrote: {}".format(self.client_address[0], self.data))
+        self.data = self.request.recv(1024).strip()
+        dataType = self.data[0]
+        self.data = self.data[1:]
+        if dataType == 0: # Text
+            self.data = self.data.decode('utf-8')
+            print("{} wrote: {}".format(self.client_address[0], self.data))
+        else: # Voice
+            print("Voice command received")
+            self.data = 'connect home' # TODO Fix it
 
         parameters = self.data.split(" ")
         intent = parameters[0]
@@ -96,7 +103,7 @@ class JoshuHandler(socketserver.BaseRequestHandler):
         print(intent)
         print(slots)
         print(self.server.joshu.dataStore["connectedClients"])
-        
+
         # 'Auth'
         connectionInfo = None
         if self.client_address[0] in self.server.joshu.dataStore["connectedClients"].keys():
@@ -144,10 +151,10 @@ def sendToClient(clientIp, response):
     try:
         sock.connect((HOST,PORT))
         sock.sendall(bytes(response.getJson(), "utf-8"))
-        received = str(sock.recv(1024), "utf-8") # TODO Timeout 
+        received = str(sock.recv(1024), "utf-8") # TODO Timeout
     finally:
         sock.close()
-    
+
 def runCron():
     cron = Cron()
     commandList = CommandList(sharedData.dataStore).commands
