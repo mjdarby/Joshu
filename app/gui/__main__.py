@@ -3,10 +3,16 @@ import sys
 import os
 import glob
 import app.speechrecog.speech
+import pyaudio
 from threading import RLock, Thread
 from app.shared.response import Response
 from app.client.client import runClientThread, sendCommand
+from app.hotword.hotword import runHotwordThread
 from app.speechsynth import voice
+from json import JSONDecodeError
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../Porcupine/binding/python'))
+from porcupine import Porcupine
 
 size = width, height = 640, 480
 black = 0,0,0
@@ -111,8 +117,14 @@ def processCommand(server, clientThread, host, string, character):
         sys.exit()
     else:
         received = sendCommand(host, string, lock)
-        response = Response.decodeJson(received)
+        processResponse(received)
+
+def processResponse(json):
+    try:
+        response = Response.decodeJson(json)
         voiceResponse(response.text, response.mood, character)
+    except JSONDecodeError:
+        voiceResponse("Oops, something went wrong.", "neutral", character)
 
 def renderBackground(screen):
     screen.fill(black)
@@ -130,7 +142,7 @@ if __name__ == "__main__":
 
     # Pygame setup
     pygame.init()
-    pygame.display.set_caption("Joshu v0.1b: Stronger Days")
+    pygame.display.set_caption("Joshu v0.1c: Stronger Moments")
 
     screen = pygame.display.set_mode(size)
 
@@ -141,15 +153,40 @@ if __name__ == "__main__":
     character = Character()
     character.loadAssets()
 
+    # Get the hotword and threads out of the way
+    porcupine = Porcupine(
+        library_path=os.path.join(os.path.dirname(__file__), '../../../../Porcupine/lib/linux/x86_64/libpv_porcupine.so'),
+        model_file_path=os.path.join(os.path.dirname(__file__), '../../../../Porcupine/lib/common/porcupine_params.pv'),
+        keyword_file_paths=[os.path.join(os.path.dirname(__file__), '../../assistant_linux.ppn')],
+        sensitivities=[0.5])
+
+    pa = pyaudio.PyAudio()
+    audio_stream = pa.open(
+        rate=porcupine.sample_rate,
+        channels=1,
+        format=pyaudio.paInt16,
+        input=True,
+        frames_per_buffer=porcupine.frame_length,
+        input_device_index=None)
+
     def callback(data):
-        response = Response.decodeJson(data)
-        voiceResponse(response.text, response.mood, character)
+        processResponse(data)
+
+    def hotwordCallback():
+        voiceResponse("Yes?", "neutral", character)
+        success, recogString = app.speechrecog.speech.getAudio(porcupine, pa, audio_stream)
+        if success:
+            processCommand(server, clientThread, host, recogString, character)
+        else:
+            voiceResponse(recogString, "neutral", character)
 
     # Setup
     lock = RLock()
     clientThread, server = runClientThread(lock, callback)
-
     inputString = ""
+
+    hotwordThread = runHotwordThread(hotwordCallback, porcupine, pa, audio_stream)
+
     # Main loop
     while True:
         # Regulate FPS
@@ -186,11 +223,7 @@ if __name__ == "__main__":
                 if keyValue == pygame.K_BACKSPACE:
                     inputString = inputString[0:-1]
                 if keyValue == pygame.K_TAB:
-                    success, recogString = app.speechrecog.speech.getAudio()
-                    if success:
-                        processCommand(server, clientThread, host, recogString, character)
-                    else:
-                        voiceResponse(recogString, "neutral", character)
+                    hotwordCallback()
 
         # Display
         renderBackground(screen)

@@ -83,7 +83,7 @@ def getClientLocation(ip):
     print(ip)
     if ip == "127.0.0.1":
         ip = ""
-    geoIp = urllib.request.urlopen('http://freegeoip.net/json/' + ip)
+    geoIp = urllib.request.urlopen('http://ipstack.com/json/' + ip)
     response = geoIp.read().decode('utf-8')
     location = json.loads(response)
     print(location)
