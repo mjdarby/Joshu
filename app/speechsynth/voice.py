@@ -1,13 +1,26 @@
-# import win32com.client
-
-voice = 'Microsoft Sam'
-volume = 100
-rate = -1
+import boto3
+import pyaudio
 
 def speak(text):
-#    speak = win32com.client.Dispatch('Sapi.SpVoice')
-#    speak.Voice = speak.GetVoices('Name='+voice).Item(0)
-#    speak.Rate = rate
-#    speak.Volume = volume
-#    speak.Speak(text)
+    client = boto3.client('polly')
+    response = client.synthesize_speech(
+        OutputFormat='pcm',
+        Text=text,
+        TextType='text',
+        VoiceId='Emma',
+    )
+    # Polly values
+    pa = pyaudio.PyAudio()
+    output_stream = pa.open(
+        rate=16000,
+        channels=1,
+        format=pyaudio.paInt16,
+        output=True,
+    )
+    body = response['AudioStream']
+    data = body.read(16000)
+    while len(data) > 0:
+        output_stream.write(data)
+        print(data)
+        data = body.read(16000)
     print(text)

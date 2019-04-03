@@ -60,7 +60,7 @@ class CommandList():
                          "disconnect": Disconnect(dataStore),
                          "weather": Weather(dataStore),
                          "wakeUp": WakeUp(dataStore),
-                         "setAlarm": SetAlarm(dataStore),
+                         "setalarm": SetAlarm(dataStore),
                          "awake": Awake(dataStore),
                          "chat": Chat(dataStore),
                          "home": Home(dataStore),
@@ -86,14 +86,21 @@ class JoshuHandler(socketserver.BaseRequestHandler):
 
     def _handle(self):
         self.commands = CommandList(self.server.joshu.dataStore).commands
-        self.data = self.request.recv(1024).strip()
+        self.data = self.request.recv(102400).strip()
+        print(self.data)
         dataType = self.data[0]
         self.data = self.data[1:]
+
         if dataType == 0: # Text
             self.data = self.data.decode('utf-8')
             print("{} wrote: {}".format(self.client_address[0], self.data))
+            print(len(self.data))
         else: # Voice
             print("Voice command received")
+            print(len(self.data))
+            f = open("output.wav", 'wb')
+            f.write(self.data)
+            f.close()
             self.data = 'connect home' # TODO Fix it
 
         parameters = self.data.split(" ")

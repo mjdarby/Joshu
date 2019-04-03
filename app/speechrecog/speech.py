@@ -1,5 +1,6 @@
 import speech_recognition as sr
 
+import boto3
 import argparse
 import os
 import platform
@@ -33,6 +34,7 @@ def recordUntilSilent(porcupine, pa, audio_stream):
             silent_frames = 0
         if silent_frames > 30:
             record = False
+    return frames
     wf = wave.open("input.wav", 'wb')
     wf.setnchannels(1)
     wf.setsampwidth(pa.get_sample_size(pyaudio.paInt16))
@@ -40,6 +42,30 @@ def recordUntilSilent(porcupine, pa, audio_stream):
     wf.writeframes(bytes(frames))
 
 def getAudio(porcupine, pa, audio_stream):
-    recordUntilSilent(porcupine, pa, audio_stream)
-    # Do some Lex stuff
-    return False, "Be patient, we haven't done this part yet."
+    frames = recordUntilSilent(porcupine, pa, audio_stream)
+    client = boto3.client('lex-runtime')
+    ret = client.post_content(
+        botName='Joshu',
+        botAlias='Test',
+        userId='abc123',
+        contentType='audio/l16; rate=16000; channels=1',
+        accept='text/plain; charset=utf-8',
+        inputStream=bytes(frames))
+
+    # TODO: Actual conversation until error or intent w/ slots returned
+
+    # Hacky debug stuff
+    if 'intentName' in ret and ret['dialogState'] == 'ReadyForFulfillment':
+        print(ret['intentName'])
+        slots = {}
+        if 'slots' in ret:
+            slots = ret['slots']
+        return True, ret['intentName'].lower(), slots
+    elif ret['dialogState'] == 'ElicitSlot':
+        # TODO: Automatically retrigger getAudio after response has played
+        return False, ret['message'], {}
+    else:
+        # End of conversation
+        return False, ret['message'], {}
+
+    return False, "Here be problems!"

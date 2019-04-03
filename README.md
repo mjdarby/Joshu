@@ -11,7 +11,7 @@ Joshu is written in Python 3
 
 # Commands
 ## setAlarm
-Creates a cronjob (implemented) to tell server to run wakeUp (implemented) and send to attached clients
+Creates a cronjob to tell server to run wakeUp and send to attached clients
 ### Parameters
 * Alarm time as unix timestamp
 ## wakeUp
@@ -26,9 +26,9 @@ Otherwise tries to report the weather data for the client's location.
 
 # Requirements
 * Python 3.6.1 or greater
+* Porcupine installed and the relevant parameters set in the config file
 * pip modules:
-    * pypiwin32 (hopefully not going to be a requirement forever)
-    * pygame (if using the GUI)
+    * Check out requirements.txt
 * A set of ordered animation frames in app/gui/assets (for using the 'gui')
     * Frame 0 should have no mouth movement
     * Hardcoded at 3 fps
@@ -38,3 +38,4 @@ Otherwise tries to report the weather data for the client's location.
         * "annoyed"
         * "neutral"
         * "happy"
+* Currently, using the graphical GUI requires an Amazon AWS account - setup instructions to come

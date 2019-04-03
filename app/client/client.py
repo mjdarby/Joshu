@@ -43,6 +43,7 @@ def sendVoiceCommand(host, clientLock):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         f = open("input.wav", 'rb')
         data = f.read()
+        f.close()
         try:
             sock.connect((HOST,PORT))
             sock.sendall((1).to_bytes(1, "big") + data)
