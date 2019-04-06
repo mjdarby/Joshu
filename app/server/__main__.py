@@ -139,7 +139,7 @@ sharedData.initialise()
 def runServer(cronThread):
     global serverRunning
     try:
-        HOST, PORT = "localhost", 9999
+        HOST, PORT = "", 9999
         server = socketserver.TCPServer((HOST, PORT), JoshuHandler)
         server.joshu = sharedData
         server.serve_forever()
