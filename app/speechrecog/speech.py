@@ -21,7 +21,7 @@ def recordUntilSilent(porcupine, pa, audio_stream):
     frames = array('h')
     silent_frames = 0
     while record:
-        pcm = audio_stream.read(porcupine.frame_length)
+        pcm = audio_stream.read(porcupine.frame_length, exception_on_overflow=False)
         avg = audioop.rms(pcm, 2)
         print(avg)
         frames.extend(array('h', pcm))

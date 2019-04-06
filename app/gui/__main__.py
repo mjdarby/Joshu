@@ -16,7 +16,7 @@ PORCUPINE_ARCH = '/raspberry-pi/cortex-a7'
 sys.path.append(PORCUPINE_HOME + '/binding/python')
 from porcupine import Porcupine
 
-size = width, height = 640, 480
+size = width, height = 800, 480
 black = 0,0,0
 
 class AnimationFrames():
@@ -146,7 +146,7 @@ if __name__ == "__main__":
     pygame.init()
     pygame.display.set_caption("Joshu v0.1c: Stronger Moments")
 
-    screen = pygame.display.set_mode(size)
+    screen = pygame.display.set_mode(size, pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF)
 
     clock = pygame.time.Clock()
     pygameFont = pygame.font.SysFont('Consolas', 16)
