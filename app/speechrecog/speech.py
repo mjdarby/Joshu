@@ -16,9 +16,6 @@ import numpy as np
 import pyaudio
 import soundfile
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../Porcupine/binding/python'))
-from porcupine import Porcupine
-
 def recordUntilSilent(porcupine, pa, audio_stream):
     record = True
     frames = array('h')

@@ -11,7 +11,9 @@ from app.hotword.hotword import runHotwordThread
 from app.speechsynth import voice
 from json import JSONDecodeError
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../Porcupine/binding/python'))
+PORCUPINE_HOME = '/home/pi/Porcupine'
+PORCUPINE_ARCH = '/raspberry-pi/cortex-a7'
+sys.path.append(PORCUPINE_HOME + '/binding/python')
 from porcupine import Porcupine
 
 size = width, height = 640, 480
@@ -155,9 +157,9 @@ if __name__ == "__main__":
 
     # Get the hotword and threads out of the way
     porcupine = Porcupine(
-        library_path=os.path.join(os.path.dirname(__file__), '../../../../Porcupine/lib/linux/x86_64/libpv_porcupine.so'),
-        model_file_path=os.path.join(os.path.dirname(__file__), '../../../../Porcupine/lib/common/porcupine_params.pv'),
-        keyword_file_paths=[os.path.join(os.path.dirname(__file__), '../../assistant_linux.ppn')],
+        library_path=PORCUPINE_HOME + '/lib' + PORCUPINE_ARCH + '/libpv_porcupine.so',
+        model_file_path=PORCUPINE_HOME + '/lib/common/porcupine_params.pv',
+        keyword_file_paths=[PORCUPINE_HOME + '/resources/keyword_files/raspberrypi/christina_raspberrypi.ppn'],
         sensitivities=[0.5])
 
     pa = pyaudio.PyAudio()

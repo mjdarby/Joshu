@@ -21,6 +21,5 @@ def speak(text):
     data = body.read(16000)
     while len(data) > 0:
         output_stream.write(data)
-        print(data)
         data = body.read(16000)
     print(text)

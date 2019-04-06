@@ -21,7 +21,7 @@ def runHotwordThread(callback, porcupine, pa, audio_stream):
 def run(callback, porcupine, pa, audio_stream):
     try:
         while True:
-            pcm = audio_stream.read(porcupine.frame_length)
+            pcm = audio_stream.read(porcupine.frame_length, exception_on_overflow=False)
             pcm = struct.unpack_from("h" * porcupine.frame_length, pcm)
 
             result = porcupine.process(pcm)
