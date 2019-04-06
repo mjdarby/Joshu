@@ -5,14 +5,16 @@ import glob
 import app.speechrecog.speech
 import pyaudio
 from threading import RLock, Thread
+from app.config.config import Config
 from app.shared.response import Response
 from app.client.client import runClientThread, sendCommand
 from app.hotword.hotword import runHotwordThread
 from app.speechsynth import voice
 from json import JSONDecodeError
 
-PORCUPINE_HOME = '/home/pi/Porcupine'
-PORCUPINE_ARCH = '/raspberry-pi/cortex-a7'
+config = Config()
+PORCUPINE_HOME = config.config["porcupine"]["home"]
+PORCUPINE_ARCH = config.config["porcupine"]["arch"]
 sys.path.append(PORCUPINE_HOME + '/binding/python')
 from porcupine import Porcupine
 
@@ -159,7 +161,7 @@ if __name__ == "__main__":
     porcupine = Porcupine(
         library_path=PORCUPINE_HOME + '/lib' + PORCUPINE_ARCH + '/libpv_porcupine.so',
         model_file_path=PORCUPINE_HOME + '/lib/common/porcupine_params.pv',
-        keyword_file_paths=[PORCUPINE_HOME + '/resources/keyword_files/raspberrypi/christina_raspberrypi.ppn'],
+        keyword_file_paths=[PORCUPINE_HOME + '/resources/keyword_files/' + config.config["porcupine"]["os"] + '/christina_' + config.config["porcupine"]["os"] + '.ppn'],
         sensitivities=[0.5])
 
     pa = pyaudio.PyAudio()

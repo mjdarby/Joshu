@@ -39,3 +39,9 @@ Otherwise tries to report the weather data for the client's location.
         * "neutral"
         * "happy"
 * Currently, using the graphical GUI requires an Amazon AWS account - setup instructions to come
+
+# Usage
+* Install all the pre-requisites
+* Rename config.json.example to config.json and complete the details there
+* Start a Joshu server (python -m app.server)
+* Connect a Joshu client (python -m app.gui localhost)
