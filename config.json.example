@@ -1,7 +1,9 @@
 {
     "ui":
     {
-        "alignment": "horizontal"
+        "alignment": "horizontal",
+        "server": "localhost",
+        "fullscreen": false
     },
     "voice":
     {

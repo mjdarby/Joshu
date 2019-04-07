@@ -161,14 +161,18 @@ def renderText(inputString, surface):
         screen.blit(rotatedRender, (width - pygameFont.size(inputString)[1], height-rotatedRender.get_height()))
 
 if __name__ == "__main__":
-    host = sys.argv[1]
+    host = Config().config["ui"]["server"]
     is_running = True
 
     # Pygame setup
     pygame.init()
     pygame.display.set_caption("Joshu v0.1d: Unstoppable Christina")
 
-    screen = pygame.display.set_mode(size)
+    screen = None
+    if Config().config["ui"]["fullscreen"]:
+        screen = pygame.display.set_mode(size, pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF)
+    else:
+        screen = pygame.display.set_mode(size)
 
     clock = pygame.time.Clock()
     pygameFont = pygame.font.SysFont('Consolas', 16)
