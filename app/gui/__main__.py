@@ -4,6 +4,7 @@ import os
 import glob
 import app.speechrecog.speech
 import pyaudio
+from time import sleep
 from threading import RLock, Thread
 from app.config.config import Config
 from app.shared.response import Response
@@ -114,11 +115,21 @@ def _voiceResponse(text, mood, character):
     voice.speak(text)
     character.resetAnimation()
 
+def quitJoshu():
+    print("Time to go.")
+    global is_running
+    is_running = False
+    server.shutdown()
+    print("Server killed.")
+    clientThread.join()
+    print("Client thread killed.")
+    hotwordThread.join()
+    print("Hotword thread killed.")
+    sys.exit()
+
 def processCommand(server, clientThread, host, string, character):
     if (string == "quit"):
-        server.shutdown()
-        clientThread.join()
-        sys.exit()
+        quitJoshu()
     else:
         received = sendCommand(host, string, lock)
         processResponse(received)
@@ -135,20 +146,29 @@ def renderBackground(screen):
 
 def renderCharacter(character, screen):
     surfaceToRender = character.getDisplaySurface()
-    screen.blit(surfaceToRender, (width / 2 - surfaceToRender.get_width() / 2, 0))
+    if RENDER_HORIZONTAL:
+        screen.blit(surfaceToRender, (width / 2 - surfaceToRender.get_width() / 2, 0))
+    else:
+        rotatedRender = pygame.transform.rotozoom(surfaceToRender, 90)
+        screen.blit(rotatedRender, (0, height / 2 - (rotatedRender.get_height() / 2)))
 
 def renderText(inputString, surface):
     textSurface = pygameFont.render(">" + inputString, True, (255,255,255))
-    screen.blit(textSurface, (0, height - pygameFont.size(inputString)[1]))
+    if RENDER_HORIZONTAL:
+        screen.blit(textSurface, (0, height - pygameFont.size(inputString)[1]))
+    else:
+        rotatedRender = pygame.transform.rotate(textSurface, 90)
+        screen.blit(rotatedRender, (width - pygameFont.size(inputString)[1], height-rotatedRender.get_height()))
 
 if __name__ == "__main__":
     host = sys.argv[1]
+    is_running = True
 
     # Pygame setup
     pygame.init()
-    pygame.display.set_caption("Joshu v0.1c: Stronger Moments")
+    pygame.display.set_caption("Joshu v0.1d: Unstoppable Christina")
 
-    screen = pygame.display.set_mode(size, pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF)
+    screen = pygame.display.set_mode(size)
 
     clock = pygame.time.Clock()
     pygameFont = pygame.font.SysFont('Consolas', 16)
@@ -177,21 +197,32 @@ if __name__ == "__main__":
         processResponse(data)
 
     def hotwordCallback():
-#        ping = pygame.mixer.Sound('ping.wav')
-#        ping.play()
-#        voiceResponse("Yes?", "neutral", character)
-        valid, string, slots = app.speechrecog.speech.getAudio(porcupine, pa, audio_stream)
-        if valid:
+        dialogState, string, slots = app.speechrecog.speech.getAudio(porcupine, pa, audio_stream)
+
+        needAdditionalDialog = dialogState == 'ElicitSlot' or dialogState == 'ElicitIntent' or dialogState == 'ConfirmIntent'
+
+        print(dialogState)
+
+        if dialogState == 'ReadyForFulfillment':
             processCommand(server, clientThread, host, string, character)
+        elif needAdditionalDialog and config.config["voice"]["enableAutoReply"]:
+            _voiceResponse(string, "neutral", character) # Blocking
+            sleep(1)
+            hotwordCallback()
         else:
             voiceResponse(string, "neutral", character)
+
+    def isRunning():
+        return is_running
 
     # Setup
     lock = RLock()
     clientThread, server = runClientThread(lock, callback)
     inputString = ""
 
-    hotwordThread = runHotwordThread(hotwordCallback, porcupine, pa, audio_stream)
+    hotwordThread = runHotwordThread(hotwordCallback, porcupine, pa, audio_stream, isRunning)
+
+    RENDER_HORIZONTAL = config.config["ui"]["alignment"] == "horizontal"
 
     # Main loop
     while True:
@@ -206,9 +237,7 @@ if __name__ == "__main__":
         shifted = keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                server.shutdown()
-                clientThread.join()
-                sys.exit()
+                quitJoshu()
             if event.type == pygame.KEYDOWN:
                 keyValue = event.key
                 if keyValue == pygame.K_ESCAPE:

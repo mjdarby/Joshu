@@ -1,13 +1,21 @@
 {
+    "ui":
+    {
+        "alignment": "horizontal"
+    },
+    "voice":
+    {
+        "enableAutoReply": false
+    },
     "work":
     {
-	"workdays": [0, 1, 2, 3, 4],
-	"workStart": "00:20",
-	"workEnd": "00:21"
+        "workdays": [0, 1, 2, 3, 4],
+        "workStart": "00:20",
+        "workEnd": "00:21"
     },
     "porcupine":
     {
-	"home": "/home/.../Porcupine",
+        "home": "/home/.../Porcupine",
         "os": "linux",
         "arch": "/linux/x86_64"
     }

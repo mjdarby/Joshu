@@ -14,5 +14,5 @@ class Awake(BaseCommand):
         # First run check
         if "wake" in self.dataStore.keys():
             self.dataStore["wake"]["awake"] = True
-            return Response(random.choice(["Good morning!"]), "happy")
-        return Response(random.choice(["I know."]), "neutral")
+            return Response(random.choice(["Ta-da!", ""]), "happy")
+        return Response(random.choice(["There's no alarm to turn off."]), "neutral")

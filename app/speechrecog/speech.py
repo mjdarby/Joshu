@@ -1,5 +1,3 @@
-import speech_recognition as sr
-
 import boto3
 import argparse
 import os
@@ -49,20 +47,16 @@ def getAudio(porcupine, pa, audio_stream):
         accept='text/plain; charset=utf-8',
         inputStream=bytes(frames))
 
-    # TODO: Actual conversation until error or intent w/ slots returned
-
-    # Hacky debug stuff
+    # Hacky stuff
+    print(ret)
     if 'intentName' in ret and ret['dialogState'] == 'ReadyForFulfillment':
         print(ret['intentName'])
         slots = {}
         if 'slots' in ret:
             slots = ret['slots']
-        return True, ret['intentName'].lower(), slots
-    elif ret['dialogState'] == 'ElicitSlot':
-        # TODO: Automatically retrigger getAudio after response has played
-        return False, ret['message'], {}
+        return ret['dialogState'], ret['intentName'].lower(), slots
     else:
-        # End of conversation
-        return False, ret['message'], {}
+        # Either need more input or dialog is over
+        return ret['dialogState'], ret['message'], {}
 
     return False, "Here be problems!"

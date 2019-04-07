@@ -13,14 +13,18 @@ import numpy as np
 import pyaudio
 import soundfile
 
-def runHotwordThread(callback, porcupine, pa, audio_stream):
-    hotwordThread = Thread(None, target=run, args=(callback, porcupine, pa, audio_stream))
+def runHotwordThread(callback, porcupine, pa, audio_stream, isRunning):
+    hotwordThread = Thread(None, target=run, args=(callback, porcupine, pa, audio_stream, isRunning))
     hotwordThread.start()
     return hotwordThread
 
-def run(callback, porcupine, pa, audio_stream):
+def run(callback, porcupine, pa, audio_stream, isRunning):
     try:
         while True:
+            is_running = isRunning()
+            if not is_running:
+                raise KeyboardInterrupt("Time to go.")
+
             pcm = audio_stream.read(porcupine.frame_length, exception_on_overflow=False)
             pcm = struct.unpack_from("h" * porcupine.frame_length, pcm)
 
